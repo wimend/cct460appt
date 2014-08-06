@@ -314,15 +314,18 @@ function cct460appt_display_appointments() {
 							<th>Time</th>
 							<th></th>
 						</tr>';
-
+						
+	// Get existing DB entries and show them in the table.
 	$results = $wpdb->get_results ("SELECT a.client_id, s.name, a.day, a.hour_index FROM " . APPOINTMENTS_TABLE_NAME . " a, " . 
 									SERVICE_TABLE_NAME . " s WHERE a.service_id = s.id");
 	foreach ($results as $item) {
 		$client = $item->client_id;
 		$service = $item->name;
 		$day = $item->day;
+		// Times are blocks of 30 minutes. The database stores block indexes, i.e., 1 = 30min, 2 = 60min, etc.
 		$time = get_hour_from_index($item->hour_index);
-      		  
+      		
+      		// Put entries inside the HTML code, specifically one entry by table row.  
 		$html .= 		"<tr>
 							<td>$client</td>
 							<td>$service</td>
@@ -339,9 +342,14 @@ function cct460appt_display_appointments() {
     echo $html;
 }
 
+// This function represents the shortcode to show the appointment form in a WP page.
 function book_appointment_form_display($atts) {
+	// Load the style for the front-end.
 	wp_enqueue_style( 'clientStyle' );
+	// Load the jQuery for the calendar.
 	wp_enqueue_script('jquery-ui');
+	
+	// Set the jQuery calendar.
 	echo "<script>
 				 jQuery(function() {
 				    jQuery( '#date' ).datepicker();
@@ -353,33 +361,41 @@ function book_appointment_form_display($atts) {
 
 	global $wpdb;
 
-	 $html = '<div id="apptClient"><form name="book_appointment_form" action="" method="post">
-	 <input type="hidden" name="book_appointment_post" id="1"/>';
+	// Create the HTML code for the form.
+	 $html = '<div id="apptClient">
+	 		<form name="book_appointment_form" action="" method="post">
+	 			<input type="hidden" name="book_appointment_post" id="1"/>';
+	
+	// ?? 
 	 if(isset($_POST['book_appointment_post']))
 		$html .= ' <label>Date:  <input type="text" name="date" id="date" value="'.$_POST['date'].'"/> </label>';
 	 else
 		$html .= ' <label>Date: <input type="text" name="date" id="date"/></label>';
 	 $html .= ' <label>Service: <select name="service">';
-
+	
+	// Get existing services from DB and show them in a list.
 	 $results = $wpdb->get_results ("SELECT name, id FROM " . SERVICE_TABLE_NAME);
 	 foreach ($results as $item) {
 		$name 	= $item->name;
 		$id 	= $item->id;
+		// ??
 		if(isset($_POST['book_appointment_post']) && $_POST['service'] == $id)
 			$html .= "<option value='$id' selected='selected'>$name</option>";
 		else
 			$html .= "<option value='$id'>$name</option>";
 	 }
-
-	 $html .= '</select> </label>
-	 <input type="submit" value="Check available times">
-	 </form></div>';
+	
+	 $html .= '		</select> </label>
+	 		<input type="submit" value="Check available times">
+		   </form></div>';
 
 	 echo $html;
 
+	// Call the following function when users submit the form (request available times).
 	 if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['book_appointment_post']))
 		cct460appt_request_form_available_times();
 
+	// Call the following function when users submit the form (insert appointments)
 	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['request_form_available_times']))
 		cct460appt_insert_appointment();
 }
