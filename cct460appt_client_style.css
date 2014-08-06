@@ -1,0 +1,34 @@
+#apptClient {
+	margin-top:.5em;
+}
+#apptClient table{
+	border-collapse:collapse;
+	margin: 5px;
+}
+
+#apptClient td, th {
+	border: 1px solid #ccc;
+	padding: 5px;
+
+}
+#apptClient tr:nth-child(even){
+	color:black;
+	background-color:#b4c6e7;
+}
+
+#apptClient tr:nth-child(odd){
+	color:black;
+	background-color:#d9e2f3;
+}
+
+#apptClient th{
+	color:white;
+	background-color: #1A81C5;
+}
+
+
+#apptClient label{
+	display: block;
+	margin-bottom: .55em;
+}
+
