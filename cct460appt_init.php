@@ -160,13 +160,6 @@ function cct460appt_insert_business_hour(){
 }
 
 
-// Page showed when users click on submenu 'Appointments'
-function cct460appt_display_appointments() {
-    $html = "<h2>cct460appt_display_appointments</h2>";
-    echo $html;
-}
-
-
 // Creates the tables in WP database when the plugin is activated
 function cct460appt_install() {
     global $wpdb;
@@ -222,5 +215,172 @@ function cct460appt_uninstall() {
 		$wpdb->query($sql);
 }
 register_deactivation_hook( __FILE__, 'cct460appt_uninstall');
+
+
+// Page showed when users click on submenu 'Appointments'
+function cct460appt_display_appointments() {
+     global $wpdb;
+
+	 $html = '<div class="wrap">
+	 <div class="table_result">
+	 <table>
+	 <tr>
+	 <th>Client</th>
+	 <th>Service</th>
+	 <th>Day</th>
+	 <th>Time</th>
+	 </tr>';
+
+	 $results = $wpdb->get_results ("SELECT a.client_id, s.name, a.day, a.hour_index FROM " . APPOINTMENTS_TABLE_NAME . " a, " .
+	 SERVICE_TABLE_NAME . " s WHERE a.service_id = s.id");
+	 foreach ($results as $item) {
+		$client = $item->client_id;
+		$service = $item->name;
+		$day = $item->day;
+		$time = get_hour_from_index($item->hour_index);
+
+		 $html .= "<tr>
+		 <td>$client</td>
+		 <td>$service</td>
+		 <td>$day</td>
+		 <td>$time</td>
+		 <tr>";
+	 }
+
+	 $html .= ' </table>
+	 </div>
+	 </div>';
+     echo $html;
+}
+
+function book_appointment_form_display($atts) {
+	 global $wpdb;
+
+	 $html = '<form name="book_appointment_form" action="" method="post">
+	 <input type="hidden" name="book_appointment_post" id="1"/>
+	 Date: <input type="date" name="date">
+	 Service: <select name="service">';
+
+	 $results = $wpdb->get_results ("SELECT name FROM " . SERVICE_TABLE_NAME);
+	 foreach ($results as $item) {
+		$name = $item->name;
+		$html .= "<option>$name</option>";
+	 }
+
+	 $html .= '</select>
+	 <input type="submit" value="Check available times">
+	 </form>';
+
+	 echo $html;
+
+	 if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['book_appointment_post']))
+		cct460appt_request_form_available_times();
+}
+add_shortcode('book_appointment_form', 'book_appointment_form_display');
+
+
+function cct460appt_request_form_available_times() {
+	 global $wpdb;
+
+	 $time_index_array = array();
+	 $time_index_array = get_available_time_indexes(); // Willian: inserir parametros
+
+	 $html = '<form name="available_times_choice" action="" method="post">
+	 Time: <select name="time">'; // Willian: inserir campo hidden, criar funcao insert e salvar no bd
+
+	 foreach ($time_index_array as $time_index) {
+		$hour = get_hour_from_index($time_index);
+		$html .= '<option value="' . $time_index . '">' . $hour . '</option><br/>';
+	 }
+
+	 $html .= ' </select>
+	 Your name: <input type="text" name="name">
+	 <input type="submit" value="Book appointment">
+	 </form>';
+
+	 echo $html;
+}
+
+
+function get_weekday_from_index($index) {
+	 $weekdays = array ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
+
+	 return $weekdays[$index-1];
+}
+
+
+function get_hour_from_index($index) {
+	 $hour = "";
+	 $hour .= ($index/2) < 10 ? "0".floor($index/2) : floor($index/2);
+	 $hour .= ($index%2) == 0 ? ":00" : ":30";
+
+	 return $hour;
+}
+
+function get_available_time_indexes() { // Willian: procurar dados no banco atraves desta funcao
+
+/*
+ * SERVICE_TABLE_NAME
+ * BUSINESS_HOURS_TABLE_NAME
+ * APPOINTMENTS_TABLE_NAME
+*/ 	
+
+	$sql = "SELECT hour_index as hi,
+				duration as qnt,
+				start_hour_index as shi, 
+				end_hour_index as ehi
+				
+		FROM ". BUSINESS_HOURS_TABLE_NAME." AS w 
+
+		LEFT JOIN ".APPOINTMENTS_TABLE_NAME."  AS c
+			AND w.weekday = weekday(c.day)
+			LEFT JOIN". SERVICE_TABLE_NAME ." AS s
+			ON c.service_id = s.id
+		
+		WHERE w.weekday = weekday(now())";
+			
+
+	$results = $wpdb->get_results ($sql);
+
+	$shi = -1;
+	$ehi = -1;
+	$qnt = -1;
+	foreach ($results as $row) {
+
+		if($shi == -1){
+				
+				$shi = $row->shi;
+				$ehi = $row->ehi;
+				$qnt = $row->qnt;
+				if(!empty($row->hi)){
+					$exception[] = $row->hi;
+					for($j=1; $j < $qnt; $j++)
+						$exception[] = $row->hi + $j;
+				}
+				
+	
+				
+		}else{
+			if(!empty($row->hi)){
+				$exception[] = $row->hi;
+				$qnt = $row->qnt;
+				for($j=1; $j < $qnt; $j++)
+					$exception[] = $row->hi + $j;
+			}
+		}
+	}
+	for($i = $shi; $i < $ehi; $i++){
+
+		if(!isset($exception) || !in_array($i,$exception)){
+			$ret[] = $i;
+		}
+	}
+	
+	
+	if(isset($ret) && !empty($ret))
+		return $ret;
+	else
+		return array();
+}
 
 ?>
