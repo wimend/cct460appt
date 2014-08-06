@@ -33,9 +33,6 @@
 	line-height: 1.5em;
 }
 
-#apptAdmin label{
-}
-
 #apptAdmin input, select{
 	background-color: #e9e9e9;
 	padding: 5px;
@@ -61,3 +58,18 @@
 	border-color: #f1e7ff;
 }
 
+.success{
+	margin-top: 15px;
+	display: block;
+	padding: 5px 10px;
+	border-radius: 5px;
+	background-color: #dff0d8;
+}
+
+.error{
+	margin-top: 15px;
+	display: block;
+	padding: 5px 10px;
+	border-radius: 5px;
+	background-color: #f2dede;
+}
