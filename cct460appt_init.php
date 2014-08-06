@@ -298,11 +298,14 @@ register_deactivation_hook( __FILE__, 'cct460appt_uninstall');
 
 // Page showed when users click on submenu 'Appointments'.
 function cct460appt_display_appointments() {
+	wp_enqueue_style( 'adminStyle' );
+
     global $wpdb;
 
 	// Create the HTML code for the form.
 	$html = '<div class="wrap">
-				<div class="table_result">
+				<div id="apptAdmin" class="table_result">
+				<h1> Appointments </h1>
 					<table>
 						<tr>
 							<th>Client</th>
@@ -326,7 +329,7 @@ function cct460appt_display_appointments() {
 							<td>$day</td>
 							<td>$time</td>
 							<td><a>Delete</a></td>
-						<tr>";
+						</tr>";
 	}
 
 	$html .= '		</table>
