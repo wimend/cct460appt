@@ -451,17 +451,22 @@ function cct460appt_insert_appointment(){
 
 }
 
-
+// This function gets a weekday from a given index.
 function get_weekday_from_index($index) {
+	// 1 = Sunday, 2 = Monday, 3 = Tuesday, ...
 	 $weekdays = array ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
 
 	 return $weekdays[$index-1];
 }
 
-
+// This function gets a real hour from a given index.
 function get_hour_from_index($index) {
 	 $hour = "";
+	 // Times are blocks of 30 minutes. E.g., hour '1' = '00:00', hour '2' = '00:30'.
+	 // Each 2 indexes are 1 hour (index/2). Add the digit zero if hour < 10.
 	 $hour .= ($index/2) < 10 ? "0".floor($index/2) : floor($index/2);
+	 // Concatenates either :00 minutes or :30 minutes based on the division's remainder. 
+	 // If even, :00. If odd, :30. (:30 always carries a odd number of blocks).
 	 $hour .= ($index%2) == 0 ? ":00" : ":30";
 
 	 return $hour;
