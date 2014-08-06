@@ -27,6 +27,7 @@ add_action('admin_menu', 'cct460appt_addmenu');
 
  // Register the stylesheet.
 wp_register_style( 'adminStyle', plugins_url('cct460appt_admin_style.css', __FILE__) );
+wp_register_style( 'clientStyle', plugins_url('cct460appt_client_style.css', __FILE__) );
 
 // Page showed when users click on menu 'CCT460 Appointments'
 function cct460appt_display_settings() {
@@ -140,7 +141,7 @@ function cct460appt_display_business_hours() {
 				</form>
 			</div>';
 			
-	$html .=	'<div class="table_result">
+	$html .=	'<div id="apptAdmin" class="table_result">
 				<table>
 					<tr>
 						<th>Week Day</th>
@@ -158,7 +159,7 @@ function cct460appt_display_business_hours() {
 							<td>$weekday</td>
 							<td>$start_hour</td>
 							<td>$end_hour</td>
-						<tr>";
+						</tr>";
 	}
 						
 	$html .= '		</table>
@@ -286,24 +287,25 @@ function cct460appt_display_appointments() {
 }
 
 function book_appointment_form_display($atts) {
+	wp_enqueue_style( 'clientStyle' );
 	global $wpdb;
 
-	$html = '<form name="book_appointment_form" action="" method="post">
-				<input type="hidden" name="book_appointment_post" id="1"/>
-				Date: <input type="date" name="date">
-				Service: <select name="service">';
-				
-	$results = $wpdb->get_results ("SELECT name FROM " . SERVICE_TABLE_NAME);
-	foreach ($results as $item) {
-		$name = $item->name;
-		$html .= 		 	 "<option>$name</option>";
-	}
+	 $html = '<div id="apptClient"><form name="book_appointment_form" action="" method="post">
+	 <input type="hidden" name="book_appointment_post" id="1"/>
+	 <label>Date: <input type="date" name="date"></label>
+	 <label>Service: <select name="service">';
 
-	$html .= 			'</select>
-					  <input type="submit" value="Check available times">
-			</form>';
-	
-	echo $html;
+	 $results = $wpdb->get_results ("SELECT name FROM " . SERVICE_TABLE_NAME);
+	 foreach ($results as $item) {
+		$name = $item->name;
+		$html .= "<option>$name</option>";
+	 }
+
+	 $html .= '</select></label>
+	 <input type="submit" value="Check available times">
+	 </form></div>';
+
+	 echo $html;
 	
 	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['book_appointment_post']))
 		cct460appt_request_form_available_times();
@@ -318,15 +320,15 @@ function cct460appt_request_form_available_times() {
 	$time_index_array = get_available_time_indexes(); // Willian: inserir parametros
 	
 	$html = '<form name="available_times_choice" action="" method="post">
-				Time: <select name="time">'; // Willian: inserir campo hidden, criar funcao insert e salvar no bd
+				<label>Time: <select name="time">'; // Willian: inserir campo hidden, criar funcao insert e salvar no bd
 							
 	foreach ($time_index_array as $time_index) {
 		$hour = get_hour_from_index($time_index);
 		$html .= '<option value="' . $time_index . '">' . $hour . '</option><br/>';
 	}
 							
-	$html .= '		  </select>
-				Your name: <input type="text" name="name">
+	$html .= '		  </select></label>
+				<label>Your name: <input type="text" name="name"></label>
 				<input type="submit" value="Book appointment">
 			</form>';
 			
