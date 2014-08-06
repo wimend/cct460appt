@@ -1,0 +1,63 @@
+#apptAdmin {
+	margin-top:15px;
+
+}
+#apptAdmin table{
+	border-collapse:collapse;
+	margin: 5px;
+}
+
+#apptAdmin td, th {
+	border: 1px solid #ccc;
+	padding: 5px;
+
+}
+#apptAdmin tr:nth-child(even){
+	color:black;
+	background-color:#b4c6e7;
+}
+
+#apptAdmin tr:nth-child(odd){
+	color:black;
+	background-color:#d9e2f3;
+}
+
+#apptAdmin th{
+	color:white;
+	background-color: #1A81C5;
+}
+
+
+#apptAdmin label{
+	display: block;
+	line-height: 1.5em;
+}
+
+#apptAdmin label{
+}
+
+#apptAdmin input, select{
+	background-color: #e9e9e9;
+	padding: 5px;
+	margin-bottom: 1em;
+	border:1px dotted #ccc;
+}
+
+#apptAdmin input:focus, select:focus{
+	background-color: #e9e6f7;
+}
+
+#apptAdmin input[type="submit"]{
+	color: #fff;
+	background-color: #1A81C5;
+	font-weight: bold;
+	text-transform: uppercase;
+	padding: 8px;
+}
+
+#apptAdmin input[disabled="disabled"]{
+	color: #ababab;
+	background-color: #f2eef7;
+	border-color: #f1e7ff;
+}
+
