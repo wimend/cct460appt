@@ -366,7 +366,7 @@ function book_appointment_form_display($atts) {
 	 		<form name="book_appointment_form" action="" method="post">
 	 			<input type="hidden" name="book_appointment_post" id="1"/>';
 	
-	// ?? 
+	// Verify if a date was chosen 
 	 if(isset($_POST['book_appointment_post']))
 		$html .= ' <label>Date:  <input type="text" name="date" id="date" value="'.$_POST['date'].'"/> </label>';
 	 else
@@ -378,7 +378,7 @@ function book_appointment_form_display($atts) {
 	 foreach ($results as $item) {
 		$name 	= $item->name;
 		$id 	= $item->id;
-		// ??
+		// Verify if a option was selected
 		if(isset($_POST['book_appointment_post']) && $_POST['service'] == $id)
 			$html .= "<option value='$id' selected='selected'>$name</option>";
 		else
@@ -513,31 +513,32 @@ function get_available_time_indexes() {
 
 	$results2 = $wpdb->get_results ($sql2);
 
-	$shi = -1;
-	$ehi = -1;
-	$qnt = -1;
+	// Starting the variables
+	$business_start_hour = -1; 		
+	$business_end_hour = -1; 		
+	$appointment_service_duration = -1; 	
 
-	$qnt2 = -1;
+	$selected_service_duration = -1; 
 	foreach ($results2 as $row2)
-		$qnt2 = $row2->duration;
+		$selected_service_duration = $row2->duration;
 
 	foreach ($results as $row) {
 
-		if($shi == -1){
+		if($business_start_hour == -1){
 
-				$shi = $row->shi;
-				$ehi = $row->ehi;
-				$qnt = $row->qnt;
+				$business_start_hour = $row->shi;
+				$business_end_hour = $row->ehi;
+				$appointment_service_duration = $row->qnt;
 				
-				// Verify if there is no appointments
+				// Verifyif there is no appointments
 				if(!empty($row->hi)){
 					
 					// Add the appointments to a list
 					$exception[] = $row->hi;
-					for($j=1; $j < $qnt; $j++)
+					for($j=1; $j < $appointment_service_duration; $j++)
 						$exception[] = $row->hi + $j;
 
-					for($k=1; $k < $qnt2; $k++)
+					for($k=1; $k < $selected_service_duration; $k++)
 						$exception[] = $row->hi - $k;
 				}
 
@@ -549,20 +550,20 @@ function get_available_time_indexes() {
 			// Verify if there is no appointments
 			if(!empty($row->hi)){
 				$exception[] = $row->hi;
-				$qnt = $row->qnt;
+				$appointment_service_duration = $row->qnt;
 				
 				// Add the appointments to a list
-				for($j=1; $j < $qnt; $j++)
+				for($j=1; $j < $appointment_service_duration; $j++)
 					$exception[] = $row->hi + $j;
 
-				for($k=1; $k < $qnt2; $k++)
+				for($k=1; $k < $selected_service_duration; $k++)
 						$exception[] = $row->hi - $k;
 			}
 		}
 	}
 	
 	// Calculate the available time on the schedule
-	for($i = $shi; $i < $ehi - $qnt2 + 1; $i++){
+	for($i = $business_start_hour; $i < $business_end_hour - $selected_service_duration + 1; $i++){
 
 		if(!isset($exception) || !in_array($i,$exception)){
 			$ret[] = $i;
