@@ -4,19 +4,19 @@ Plugin Name: CCT460 Appointments
 Description: Users can book appointments to dentist office based on availabel times set by admin.
 Plugin URI: 
 Version: 1.0
-Author: Claudinei / Willian / Roberto
+Author: Group 4
 Author URI: 
 */
 
 
-// Creates table names
+// Creates constants for table names using WP prefix. They'll be used many times in the code.
 global $wpdb;
 define ('SERVICE_TABLE_NAME', $wpdb->prefix . "cct460appt_services");
 define ('BUSINESS_HOURS_TABLE_NAME', $wpdb->prefix . "cct460appt_business_hours");
 define ('APPOINTMENTS_TABLE_NAME', $wpdb->prefix . "cct460appt_appointments");
 
 
-// Creates a menu item and its submenu items on the back-end
+// Creates a menu item and its submenu items on the back-end. Hooks this function to 'admin_menu' hook.
 function cct460appt_addmenu() {
     add_menu_page('CCT460 Appointments', 'CCT460 Appointments', 'administrator', 'cct460appt_settings', 'cct460appt_display_settings');
 	add_submenu_page('cct460appt_settings', 'Services', 'Services', 'administrator', 'cct460appt_services',  'cct460appt_display_services');
@@ -25,11 +25,11 @@ function cct460appt_addmenu() {
 }
 add_action('admin_menu', 'cct460appt_addmenu');
 
- // Register the stylesheet.
+ // Register the stylesheets, both for front-end and back-end.
 wp_register_style( 'adminStyle', plugins_url('cct460appt_admin_style.css', __FILE__) );
 wp_register_style( 'clientStyle', plugins_url('cct460appt_client_style.css', __FILE__) );
 
-// Page showed when users click on menu 'CCT460 Appointments'
+// Page showed when users click on menu 'CCT460 Appointments' on the back-end.
 function cct460appt_display_settings() {
     $html = '<div class="wrap">
     <h1> Instructions </h1>
@@ -40,7 +40,7 @@ function cct460appt_display_settings() {
 }
 
 
-// Page showed when users click on submenu 'Services'
+// Page showed when users click on submenu 'Services' on the back-end.
 function cct460appt_display_services() {
 	// load the stylesheet
 	wp_enqueue_style( 'adminStyle' );
