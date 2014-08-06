@@ -401,24 +401,30 @@ function book_appointment_form_display($atts) {
 }
 add_shortcode('book_appointment_form', 'book_appointment_form_display');
 
-
+// This function creates the form that shows all available times for booking an appointment.
 function cct460appt_request_form_available_times() {
 	global $wpdb;
 
+	 // This array stores all available times.
 	 $time_index_array = array();
+	 // The logic of available times is defined in the function below.
 	 $time_index_array = get_available_time_indexes(); 
 
+	// If the array is empty, there are no available times for that day.
 	if(empty($time_index_array)){
 
 		$html = "<div>There is no time available for this day</div>";
 	}else{
+		 // If not, creates the HTML code for the form.
 		 $html = '<form name="available_times_choice" action="" method="post">
 			 <input type="hidden" name="request_form_available_times" id="1"/>
 			 <input type="hidden" name="day" value="'.$_POST['date'].'"/>
 			 <input type="hidden" name="service_number" value="'.$_POST['service'].'"/>
-			 <label>Time: <select name="time">'; // Willian: inserir campo hidden, criar funcao insert e salvar no bd
+			 <label>Time: <select name="time">';
 
+			// Put all option in a select list.
 			 foreach ($time_index_array as $time_index) {
+			 	// Get a real hour from a given index.
 				$hour = get_hour_from_index($time_index);
 				$html .= '<option value="' . $time_index . '">' . $hour . '</option><br/>';
 			 }
@@ -431,23 +437,25 @@ function cct460appt_request_form_available_times() {
 	 echo $html;
 }
 
-
+// Insert a new service into the database.
 function cct460appt_insert_appointment(){
 	global $wpdb;
 
-		$rows_affected = $wpdb->insert( APPOINTMENTS_TABLE_NAME , array( 'service_id' => $_POST['service_number'],
+	// Insert a new database entry into the table Appointments.
+	$rows_affected = $wpdb->insert( APPOINTMENTS_TABLE_NAME , array( 'service_id' => $_POST['service_number'],
                                                                     'client_id' => $_POST['client_number'],
                                                                     'hour_index' => $_POST['time'],
                                                                     'day' => $_POST['day']
                                                                     ) );
+         // Show an error message to users when query is unsuccessfully (no rows inserted).
          if (!$rows_affected)
-		{
+	{
             echo 'Error saving data! Please try again.';
             echo '<br /><br />Error debug information: '.mysql_error();
             exit;
-		}else{
-			echo "<div>Data recorded sucessfully!</div>";
-		}
+	}else{
+		echo "<div>Data recorded sucessfully!</div>";
+	}
 
 }
 
