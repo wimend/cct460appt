@@ -275,27 +275,32 @@ function cct460appt_install() {
 register_activation_hook( __FILE__, 'cct460appt_install');
 
 
-// Deletes tables from WP database when the plugin is deactivated
+// Deletes tables from WP database when the plugin is deactivated.
 function cct460appt_uninstall() {
 	global $wpdb;
 
+	// This array stores all commands.
 	$sqls = array();
 
+	// Delete table 'Services'.
 	$sqls[] = "DROP TABLE IF EXISTS " . SERVICE_TABLE_NAME . ";";
+	// Delete table Business Hours'.
 	$sqls[] = "DROP TABLE IF EXISTS " . BUSINESS_HOURS_TABLE_NAME . ";";
+	// Delete table 'Appointments'.
 	$sqls[] = "DROP TABLE IF EXISTS " . APPOINTMENTS_TABLE_NAME . ";";
 
-	// Performs all queries
+	// Perform all queries.
 	foreach ($sqls as $sql)
 		$wpdb->query($sql);
 }
 register_deactivation_hook( __FILE__, 'cct460appt_uninstall');
 
 
-// Page showed when users click on submenu 'Appointments'
+// Page showed when users click on submenu 'Appointments'.
 function cct460appt_display_appointments() {
     global $wpdb;
 
+	// Create the HTML code for the form.
 	$html = '<div class="wrap">
 				<div class="table_result">
 					<table>
