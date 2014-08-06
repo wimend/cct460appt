@@ -32,6 +32,7 @@ wp_register_style( 'clientStyle', plugins_url('cct460appt_client_style.css', __F
 // Page showed when users click on menu 'CCT460 Appointments'
 function cct460appt_display_settings() {
     $html = '<div class="wrap">
+    <h1> Instructions </h1>
 		<p>To use the plugin, create one simple page and simply add this shortcode into its body: [book_appointment_form].</p>
 	     </div>';
 	
@@ -98,11 +99,10 @@ function cct460appt_insert_services(){
                                                                     ) );
          if (!$rows_affected)
 		{
-            echo 'Error saving data! Please try again.';
-            echo '<br /><br />Error debug information: '.mysql_error();
-            exit;
+            echo '<span class="error">Error saving data! Please try again.';
+            echo '<br /><br />Error debug information: '.mysql_error() . "</span>";
 		}else{
-			echo "<div>Data recorded sucessfully!</div>";
+			echo "<span class='success'>Data recorded sucessfully!</span>";
 		}
 }
 
@@ -183,11 +183,10 @@ function cct460appt_insert_business_hour(){
                                                                     ) );
          if (!$rows_affected)
 		{
-            echo 'Error saving data! Please try again.';
-            echo '<br /><br />Error debug information: '.mysql_error();
-            exit;
+            echo '<span class="error">Error saving data! Please try again.';
+            echo '<br /><br />Error debug information: '.mysql_error() . "</span>";
 		}else{
-			echo "<div>Data recorded sucessfully!</div>";
+			echo "<span class='success'>Data recorded sucessfully!</span>";
 		}
 }
 
