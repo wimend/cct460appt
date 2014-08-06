@@ -455,7 +455,7 @@ function get_available_time_indexes() {
 			}
 		}
 	}
-	for($i = $shi; $i < $ehi; $i++){
+	for($i = $shi; $i < $ehi - $qnt2 + 1; $i++){
 
 		if(!isset($exception) || !in_array($i,$exception)){
 			$ret[] = $i;
