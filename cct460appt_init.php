@@ -29,7 +29,10 @@ wp_register_style( 'adminStyle', plugins_url('cct460appt_admin_style.css', __FIL
 
 // Page showed when users click on menu 'CCT460 Appointments'
 function cct460appt_display_settings() {
-    $html = "<h1>cct460appt_display_settings</h1>";
+    $html = '<div class="wrap">
+				<p>To use the plugin, create one simple page and simply add this shortcode into its body: [book_appointment_form].</p>
+			</div>';
+	
     echo $html;
 }
 
