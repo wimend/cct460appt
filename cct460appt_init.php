@@ -480,7 +480,7 @@ function get_hour_from_index($index) {
 	 return $hour;
 }
 
-/ Calculate and returns the available time on the schedule
+// Calculate and returns the available time on the schedule
 function get_available_time_indexes() { 
 
 	global $wpdb;
