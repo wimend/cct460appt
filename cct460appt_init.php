@@ -29,33 +29,25 @@ add_action('admin_menu', 'cct460appt_addmenu');
 wp_register_style( 'adminStyle', plugins_url('cct460appt_admin_style.css', __FILE__) );
 wp_register_style( 'clientStyle', plugins_url('cct460appt_client_style.css', __FILE__) );
 
-//Load jQuery and Jquery UI
-add_action( 'wp_enqueue_script', 'load_scripts' );
-wp_register_script('jquery-ui',("http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"), false, '1.8.16');
-
-function load_scripts() {
-    wp_enqueue_script( 'jquery' );
-}
-
 // Page showed when users click on menu 'CCT460 Appointments' on the back-end.
 function cct460appt_display_settings() {
     $html = '<div class="wrap">
     <h1> Instructions </h1>
 		<p>To use the plugin, create one simple page and simply add this shortcode into its body: [book_appointment_form].</p>
 	     </div>';
-
+	
     echo $html;
 }
 
 
 // Page showed when users click on submenu 'Services' on the back-end.
 function cct460appt_display_services() {
-
+	
 	// Load the stylesheet for the back-end
 	wp_enqueue_style( 'adminStyle' );
 
 	global $wpdb;
-
+	
 	// Create the HTML code for the form.
 	$html = '<div class="wrap" id="apptAdmin">
 				<h1> Services </h1>
@@ -70,11 +62,11 @@ function cct460appt_display_services() {
 							  </select></label>
 					<input type="submit" value="Add">
 				</form>';
-
+	
 	// Call the following function when users submit the form.			
 	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['duration_post']))
 		cct460appt_insert_services();
-
+	
 	// Create the HTML code for the table of results.
 	$html .=	'<div id="existent_services">
 					<table>
@@ -83,7 +75,7 @@ function cct460appt_display_services() {
 							<th>Duration (min)</th>
 							<th></th>
 						</tr>';
-
+	
 	// Get existing DB entries and show them in the table.					
 	$results = $wpdb->get_results ("SELECT name, duration FROM " . SERVICE_TABLE_NAME);
 	foreach ($results as $item) {
@@ -98,26 +90,26 @@ function cct460appt_display_services() {
 							<td><a>Delete</a></td>
 						</tr>";
 	}
-
+						
 	$html .= '		</table>
 				</div>
 			</div>';
-
+			
 	echo $html;
-
+	
 }
 
 // Insert a new service into the database.
 function cct460appt_insert_services(){
 	global $wpdb;
-
+	
 	// Insert a new database entry into the table Services.
 	// Times are blocks of 30 minutes. Duration: each hour corresponds to 2 blocks, and a new block is added if 'minutes' were set as '30'.
 	$rows_affected = $wpdb->insert( SERVICE_TABLE_NAME, array( 'name' => $_POST['service_name'],
                                                                     'duration' => ($_POST['hour_duration'] * 2 + $_POST['min_duration']) 
                                                                     ) );
         
-        // Show an error message to users when query is unsuccessfully (no rows inserted)
+        // Show an error message to users when query is unsuccessfully (no rows inserted).
         if (!$rows_affected)
 	{
             echo '<span class="error">Error saving data! Please try again.';
@@ -131,10 +123,10 @@ function cct460appt_insert_services(){
 // Page showed when users click on submenu 'Business Hours'.
 function cct460appt_display_business_hours() {
 	global $wpdb;
-
+	
 	// load the stylesheet for the back-end.
 	wp_enqueue_style( 'adminStyle' );
-
+	
 	// Create the HTML code for the form.
 	$html = '<div class="wrap" id="apptAdmin">
 				<h1> Business Hours </h1>
@@ -162,7 +154,11 @@ function cct460appt_display_business_hours() {
 					<input type="submit" value="Add">
 				</form>
 			</div>';
-
+			
+	// Call the following function when users submit the form.
+	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['business_hour_post']))
+		cct460appt_insert_business_hour();
+	
 	// Get existing DB entries and show them in the table.		
 	$html .=	'<div id="apptAdmin" class="table_result">
 				<table>
@@ -172,7 +168,7 @@ function cct460appt_display_business_hours() {
 						<th>End</th>
 						<th></th>
 					</tr>';
-
+	
 	// Get existing DB entries and show them in the table.			
 	$results = $wpdb->get_results ("SELECT weekday, start_hour_index, end_hour_index FROM " . BUSINESS_HOURS_TABLE_NAME);
 	foreach ($results as $item) {
@@ -189,44 +185,45 @@ function cct460appt_display_business_hours() {
 							<td><a>Delete</a></td>
 						</tr>";
 	}
-
+						
 	$html .= '		</table>
 				</div>
 			</div>';
-
+			
 	echo $html;
-
-	// Call the following function when users submit the form.
-	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['business_hour_post']))
-		cct460appt_insert_business_hour();	
 }
 
 
-// Insert business hours on the database
+// Insert a new business hours row into the database.
 function cct460appt_insert_business_hour(){
-	    global $wpdb;
-
-		$rows_affected = $wpdb->insert( BUSINESS_HOURS_TABLE_NAME, array( 'weekday' => $_POST['week_day'],
+	global $wpdb;
+	
+	// Insert a new database entry into the table Business Hours.
+	// Weekday and time are indexes. E.g., weekday '1' = 'Sunday', weekday '2' = 'Monday', hour '1' = '00:00', hour '2' = '00:30'.
+	$rows_affected = $wpdb->insert( BUSINESS_HOURS_TABLE_NAME, array( 'weekday' => $_POST['week_day'],
                                                                     'start_hour_index' => ($_POST['hour_start'] * 2 + $_POST['min_start']),
                                                                     'end_hour_index' => ($_POST['hour_end'] * 2 + $_POST['min_end']) 
                                                                     ) );
-         if (!$rows_affected)
-		{
+        // Show an error message to users when query is unsuccessfully (no rows inserted).                                                           
+        if (!$rows_affected)
+	{
             echo '<span class="error">Error saving data! Please try again.';
             echo '<br /><br />Error debug information: '.mysql_error() . "</span>";
-		}else{
-			echo "<span class='success'>Data recorded sucessfully!</span>";
-		}
+	}else{
+		echo "<span class='success'>Data recorded sucessfully!</span>";
+	}
 }
 
 
-// Creates the tables in WP database when the plugin is activated
+// Create the tables into WP database when the plugin is activated.
 function cct460appt_install() {
     global $wpdb;
 
-	$sqls = array();
+    // This array stores all commands.	
+    $sqls = array();
 
-    $sqls[] = "CREATE TABLE IF NOT EXISTS " . SERVICE_TABLE_NAME . " (
+        // Create the table 'Services'.
+        $sqls[] = "CREATE TABLE IF NOT EXISTS " . SERVICE_TABLE_NAME . " (
 			  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			  name varchar(100) NOT NULL,
 			  duration int(11) NOT NULL,
@@ -234,7 +231,8 @@ function cct460appt_install() {
 			  UNIQUE KEY id (id),
 			  UNIQUE KEY name (name)
 			);";
-
+			
+	// Create the table 'Business Hours'.		
 	$sqls[] = "CREATE TABLE IF NOT EXISTS " . BUSINESS_HOURS_TABLE_NAME . " (
 			  id int(11) NOT NULL AUTO_INCREMENT,
 			  weekday int(11) NOT NULL,
@@ -242,7 +240,8 @@ function cct460appt_install() {
 			  end_hour_index int(11) NOT NULL,
 			  PRIMARY KEY  (id)
 			);";
-
+			
+	// Create the table 'Appointments'.		
 	$sqls[] = "CREATE TABLE IF NOT EXISTS " . APPOINTMENTS_TABLE_NAME . " (
 			  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			  client_id int(11) NOT NULL,
@@ -253,7 +252,7 @@ function cct460appt_install() {
 			  UNIQUE KEY id (id)
 			);";
 
-	// Performs all queries
+	// Perform all commands.
 	foreach ($sqls as $sql)
 		$wpdb->query($sql);
 }
@@ -263,13 +262,13 @@ register_activation_hook( __FILE__, 'cct460appt_install');
 // Deletes tables from WP database when the plugin is deactivated
 function cct460appt_uninstall() {
 	global $wpdb;
-
+	
 	$sqls = array();
-
+	
 	$sqls[] = "DROP TABLE IF EXISTS " . SERVICE_TABLE_NAME . ";";
 	$sqls[] = "DROP TABLE IF EXISTS " . BUSINESS_HOURS_TABLE_NAME . ";";
 	$sqls[] = "DROP TABLE IF EXISTS " . APPOINTMENTS_TABLE_NAME . ";";
-
+	
 	// Performs all queries
 	foreach ($sqls as $sql)
 		$wpdb->query($sql);
@@ -291,7 +290,7 @@ function cct460appt_display_appointments() {
 							<th>Time</th>
 							<th></th>
 						</tr>';
-
+						
 	$results = $wpdb->get_results ("SELECT a.client_id, s.name, a.day, a.hour_index FROM " . APPOINTMENTS_TABLE_NAME . " a, " . 
 									SERVICE_TABLE_NAME . " s WHERE a.service_id = s.id");
 	foreach ($results as $item) {
@@ -308,34 +307,24 @@ function cct460appt_display_appointments() {
 							<td><a>Delete</a></td>
 						<tr>";
 	}
-
+						
 	$html .= '		</table>
 				</div>
 			</div>';
-
+	
     echo $html;
 }
 
 function book_appointment_form_display($atts) {
 	wp_enqueue_style( 'clientStyle' );
-	wp_enqueue_script('jquery-ui');
-	echo "<script>
-				 jQuery(function() {
-				    jQuery( '#date' ).datepicker();
-				    jQuery( '#date' ).datepicker( 'option', 'dateFormat', 'yy-mm-dd' );
-   				
-				  });
-
-		</script>";
-
 	global $wpdb;
 
 	 $html = '<div id="apptClient"><form name="book_appointment_form" action="" method="post">
 	 <input type="hidden" name="book_appointment_post" id="1"/>';
 	 if(isset($_POST['book_appointment_post']))
-		$html .= ' <label>Date:  <input type="text" name="date" id="date" value="'.$_POST['date'].'"/> </label>';
+		$html .= ' <label>Date: <input type="date" name="date" value="'.$_POST['date'].'"/> </label>';
 	 else
-		$html .= ' <label>Date: <input type="text" name="date" id="date"/></label>';
+		$html .= ' <label>Date: <input type="date" name="date"/></label>';
 	 $html .= ' <label>Service: <select name="service">';
 
 	 $results = $wpdb->get_results ("SELECT name, id FROM " . SERVICE_TABLE_NAME);
@@ -356,7 +345,7 @@ function book_appointment_form_display($atts) {
 
 	 if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['book_appointment_post']))
 		cct460appt_request_form_available_times();
-
+		
 	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['request_form_available_times']))
 		cct460appt_insert_appointment();
 }
@@ -395,7 +384,7 @@ function cct460appt_request_form_available_times() {
 
 function cct460appt_insert_appointment(){
 	global $wpdb;
-
+		
 		$rows_affected = $wpdb->insert( APPOINTMENTS_TABLE_NAME , array( 'service_id' => $_POST['service_number'],
                                                                     'client_id' => $_POST['client_number'],
                                                                     'hour_index' => $_POST['time'],
@@ -403,12 +392,13 @@ function cct460appt_insert_appointment(){
                                                                     ) );
          if (!$rows_affected)
 		{
-            echo '<span class="error">Error saving data! Please try again.';
-            echo '<br /><br />Error debug information: '.mysql_error() . "</span>";
-	} else{
-		echo "<span class='success'>Data recorded sucessfully!</span>";
+            echo 'Error saving data! Please try again.';
+            echo '<br /><br />Error debug information: '.mysql_error();
+            exit;
+		}else{
+			echo "<div>Data recorded sucessfully!</div>";
 		}
-
+	
 }
 
 
@@ -450,25 +440,25 @@ function get_available_time_indexes() {
 			ON c.service_id = s.id
 		
 		WHERE w.weekday =(weekday('".$_POST['date']."') + 2) % 7";
-
+		
 	$sql2 = "select duration from ". SERVICE_TABLE_NAME ." where id='".$_POST['service']."'";
 
 	$results = $wpdb->get_results ($sql);
-
+	
 	$results2 = $wpdb->get_results ($sql2);
-
+	
 	$shi = -1;
 	$ehi = -1;
 	$qnt = -1;
-
+	
 	$qnt2 = -1;
 	foreach ($results2 as $row2)
 		$qnt2 = $row2->duration;
-
+		
 	foreach ($results as $row) {
 
 		if($shi == -1){
-
+				
 				$shi = $row->shi;
 				$ehi = $row->ehi;
 				$qnt = $row->qnt;
@@ -476,20 +466,20 @@ function get_available_time_indexes() {
 					$exception[] = $row->hi;
 					for($j=1; $j < $qnt; $j++)
 						$exception[] = $row->hi + $j;
-
+						
 					for($k=1; $k < $qnt2; $k++)
 						$exception[] = $row->hi - $k;
 				}
-
-
-
+				
+	
+				
 		}else{
 			if(!empty($row->hi)){
 				$exception[] = $row->hi;
 				$qnt = $row->qnt;
 				for($j=1; $j < $qnt; $j++)
 					$exception[] = $row->hi + $j;
-
+					
 				for($k=1; $k < $qnt2; $k++)
 						$exception[] = $row->hi - $k;
 			}
@@ -501,8 +491,8 @@ function get_available_time_indexes() {
 			$ret[] = $i;
 		}
 	}
-
-
+	
+	
 	if(isset($ret) && !empty($ret))
 		return $ret;
 	else
