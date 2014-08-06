@@ -136,7 +136,15 @@ function cct460appt_display_business_hours() {
 	wp_enqueue_style( 'adminStyle' );
 
 	// Create the HTML code for the form.
-	$html = '<div class="wrap" id="apptAdmin">
+	$html = '<script>
+			function update_min_end(start_obj){
+				var val = parseInt(start_obj.value);
+				val += parseInt(document.getElementsByName("min_start")[0].value);
+				document.getElementsByName("hour_end")[0].min = val;
+			}
+		</script>
+		
+		<div class="wrap" id="apptAdmin">
 				<h1> Business Hours </h1>
 				<form name="business_hours_form" method="post" action="">
 					<input type="hidden" name="business_hour_post" id="1"/>
@@ -149,7 +157,7 @@ function cct460appt_display_business_hours() {
 								<option value="6">Friday</option>
 								<option value="7">Saturday</option>
 							  </select></label>
-					<label>Start: <input type="number" name="hour_start" min="0" max="23" step="1"  required> : 
+					<label>Start: <input type="number" name="hour_start" min="0" max="22" step="1" onchange="update_min_end(this)" required> :
 						   <select name="min_start" >
 								<option value=0 >00</option>
 								<option value=1 >30</option>
