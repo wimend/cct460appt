@@ -41,7 +41,7 @@ function load_scripts() {
 function cct460appt_display_settings() {
     $html = '<div class="wrap">
     <h1> Instructions </h1>
-		<p>To use the plugin, create one simple page and simply add this shortcode into its body: [book_appointment_form].</p>
+		<p>To use the plugin, create one simple page and simply add this shortcode into its body: <strong>[book_appointment_form]</strong>.</p>
 	     </div>';
 
     echo $html;
@@ -250,11 +250,10 @@ function cct460appt_install() {
 
 	// Create the table 'Business Hours'.		
 	$sqls[] = "CREATE TABLE IF NOT EXISTS " . BUSINESS_HOURS_TABLE_NAME . " (
-			  id int(11) NOT NULL AUTO_INCREMENT,
 			  weekday int(11) NOT NULL,
 			  start_hour_index int(11) NOT NULL,
 			  end_hour_index int(11) NOT NULL,
-			  PRIMARY KEY  (id)
+			  PRIMARY KEY  (weekday)
 			);";
 
 	// Create the table 'Appointments'.		
