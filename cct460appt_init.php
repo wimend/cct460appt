@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: CCT460 Appointments
-Description: Users can book appointments to dentist office based on available times set by admin.
+Description: Users can book appointments to dentist office based on availabel times set by admin.
 Plugin URI: 
 Version: 1.0
 Author: Claudinei / Willian
@@ -24,38 +24,44 @@ function cct460appt_addmenu() {
 }
 add_action('admin_menu', 'cct460appt_addmenu');
 
+ // Register the stylesheet.
+wp_register_style( 'adminStyle', plugins_url('cct460appt_admin_style.css', __FILE__) );
 
 // Page showed when users click on menu 'CCT460 Appointments'
 function cct460appt_display_settings() {
-    $html = '<div class="wrap">
-				<p>To use the plugin, create one simple page and simply add this shortcode into its body: [book_appointment_form].</p>
-			</div>';
-	
+    $html = "<h1>cct460appt_display_settings</h1>";
     echo $html;
 }
 
 
 // Page showed when users click on submenu 'Services'
 function cct460appt_display_services() {
+	// load the stylesheet
+	wp_enqueue_style( 'adminStyle' );
+
 	global $wpdb;
 	
-	$html = '<div class="wrap">
+	$html = '<div id="apptAdmin">
+				<h1> Services </h1>
 				<form name="services_form" method="post" action="">
 					<input type="hidden" name="duration_post" id="1"/>
-					Name: <input type="text" name="service_name" maxlength="50" required>
-					Duration: <input name="hour_duration" type="number" min="0"  max="10"  required/>: 
+					<label> Name: <input type="text" name="service_name" maxlength="50" required> </label>
+					<label> Duration: 
+					<input name="hour_duration" type="number" min="0"  max="10"  required/>: 
 							<select name="min_duration" >
 								<option value=0 >00</option>
 								<option value=1 >30</option>
-							  </select>
+							  </select></label>
 					<input type="submit" value="Add">
-				</form>
-				<br/>';
+				</form>';
+				
+	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['duration_post']))
+		cct460appt_insert_services();
 	
-	$html .=	'<div class="table_result">
+	$html .=	'<div id="existent_services">
 					<table>
 						<tr>
-							<th>Service name</th>
+							<th>Service Name</th>
 							<th>Duration (min)</th>
 						</tr>';
 						
@@ -67,7 +73,7 @@ function cct460appt_display_services() {
 		$html .= 		"<tr>
 							<td>$name</td>
 							<td>$duration</td>
-						<tr>";
+						</tr>";
 	}
 						
 	$html .= '		</table>
@@ -75,9 +81,6 @@ function cct460appt_display_services() {
 			</div>';
 			
 	echo $html;
-	
-	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['duration_post']))
-		cct460appt_insert_services();
 	
 }
 
@@ -101,12 +104,14 @@ function cct460appt_insert_services(){
 
 // Page showed when users click on submenu 'Business Hours'
 function cct460appt_display_business_hours() {
-	global $wpdb;
-
-	$html = '<div class="wrap">
+	// load the stylesheet
+	wp_enqueue_style( 'adminStyle' );
+	
+	$html = '<div id="apptAdmin">
+				<h1> Business Hours </h1>
 				<form name="business_hours_form" method="post" action="">
 					<input type="hidden" name="business_hour_post" id="1"/>
-					Week day: <select name="week_day">
+					<label>Week day: <select name="week_day">
 								<option value="1">Sunday</option>
 								<option value="2" selected>Monday</option>
 								<option value="3">Tuesday</option>
@@ -114,44 +119,19 @@ function cct460appt_display_business_hours() {
 								<option value="5">Thursday</option>
 								<option value="6">Friday</option>
 								<option value="7">Saturday</option>
-							  </select>
-					Start: <input type="number" name="hour_start" min="0" max="23" step="1"  required> : 
+							  </select></label>
+					<label>Start: <input type="number" name="hour_start" min="0" max="23" step="1"  required> : 
 						   <select name="min_start" >
 								<option value=0 >00</option>
 								<option value=1 >30</option>
-							  </select>
-					End:   <input type="number" name="hour_end" min="0" max="23" step="1"  required> : 
+							  </select></label>
+					<label>End:   <input type="number" name="hour_end" min="0" max="23" step="1"  required> : 
 							<select name="min_end" >
 								<option value=0 >00</option>
 								<option value=1 >30</option>
-							  </select>
+							  </select></label>
 					<input type="submit" value="Add">
 				</form>
-				<br/>';
-				
-	$html .=	'<div class="table_result">
-					<table>
-						<tr>
-							<th>Week Day</th>
-							<th>Start</th>
-							<th>End</th>
-						</tr>';
-						
-	$results = $wpdb->get_results ("SELECT weekday, start_hour_index, end_hour_index FROM " . BUSINESS_HOURS_TABLE_NAME);
-	foreach ($results as $item) {
-		$weekday = get_weekday_from_index($item->weekday);
-		$start_hour = get_hour_from_index($item->start_hour_index);
-		$end_hour = get_hour_from_index($item->end_hour_index);
-      		  
-		$html .= 		"<tr>
-							<td>$weekday</td>
-							<td>$start_hour</td>
-							<td>$end_hour</td>
-						<tr>";
-	}
-						
-	$html .= '		</table>
-				</div>
 			</div>';
 			
 	echo $html;
@@ -182,38 +162,7 @@ function cct460appt_insert_business_hour(){
 
 // Page showed when users click on submenu 'Appointments'
 function cct460appt_display_appointments() {
-    global $wpdb;
-
-	$html = '<div class="wrap">
-				<div class="table_result">
-					<table>
-						<tr>
-							<th>Client</th>
-							<th>Service</th>
-							<th>Day</th>
-							<th>Time</th>
-						</tr>';
-						
-	$results = $wpdb->get_results ("SELECT a.client_id, s.name, a.day, a.hour_index FROM " . APPOINTMENTS_TABLE_NAME . " a, " . 
-									SERVICE_TABLE_NAME . " s WHERE a.service_id = s.id");
-	foreach ($results as $item) {
-		$client = $item->client_id;
-		$service = $item->name;
-		$day = $item->day;
-		$time = get_hour_from_index($item->hour_index);
-      		  
-		$html .= 		"<tr>
-							<td>$client</td>
-							<td>$service</td>
-							<td>$day</td>
-							<td>$time</td>
-						<tr>";
-	}
-						
-	$html .= '		</table>
-				</div>
-			</div>';
-	
+    $html = "<h2>cct460appt_display_appointments</h2>";
     echo $html;
 }
 
@@ -273,74 +222,5 @@ function cct460appt_uninstall() {
 		$wpdb->query($sql);
 }
 register_deactivation_hook( __FILE__, 'cct460appt_uninstall');
-
-
-function book_appointment_form_display($atts) {
-	global $wpdb;
-
-	$html = '<form name="book_appointment_form" action="" method="post">
-				<input type="hidden" name="book_appointment_post" id="1"/>
-				Date: <input type="date" name="date">
-				Service: <select name="service">';
-				
-	$results = $wpdb->get_results ("SELECT name FROM " . SERVICE_TABLE_NAME);
-	foreach ($results as $item) {
-		$name = $item->name;
-		$html .= 		 	 "<option>$name</option>";
-	}
-
-	$html .= 			'</select>
-					  <input type="submit" value="Check available times">
-			</form>';
-	
-	echo $html;
-	
-	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['book_appointment_post']))
-		cct460appt_request_form_available_times();
-}
-add_shortcode('book_appointment_form', 'book_appointment_form_display');
-
-
-function cct460appt_request_form_available_times() {
-	global $wpdb;
-	
-	$time_index_array = array();
-	$time_index_array = get_available_time_indexes(); // Willian: inserir parametros
-	
-	$html = '<form name="available_times_choice" action="" method="post">
-				Time: <select name="time">'; // Willian: inserir campo hidden, criar funcao insert e salvar no bd
-							
-	foreach ($time_index_array as $time_index) {
-		$hour = get_hour_from_index($time_index);
-		$html .= '<option value="' . $time_index . '">' . $hour . '</option><br/>';
-	}
-							
-	$html .= '		  </select>
-				Your name: <input type="text" name="name">
-				<input type="submit" value="Book appointment">
-			</form>';
-			
-	echo $html;
-}
-
-
-function get_weekday_from_index($index) {
-	$weekdays = array ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
-	
-	return $weekdays[$index-1];
-}
-
-
-function get_hour_from_index($index) {
-	$hour = "";
-	$hour .= ($index/2) < 10 ? "0".floor($index/2) : floor($index/2);
-	$hour .= ($index%2) == 0 ? ":00" : ":30";
-	
-	return $hour;
-}
-
-function get_available_time_indexes() { // Willian: procurar dados no banco atraves desta funcao
-	return array("1", "2", "3", "4", "10");
-}
 
 ?>
