@@ -10,6 +10,7 @@ Author URI:
 
 
 // Creates table names
+global $wpdb;
 define ('SERVICE_TABLE_NAME', $wpdb->prefix . "cct460appt_services");
 define ('BUSINESS_HOURS_TABLE_NAME', $wpdb->prefix . "cct460appt_business_hours");
 define ('APPOINTMENTS_TABLE_NAME', $wpdb->prefix . "cct460appt_appointments");
