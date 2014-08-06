@@ -43,7 +43,7 @@ function cct460appt_display_settings() {
 // Page showed when users click on submenu 'Services' on the back-end.
 function cct460appt_display_services() {
 	
-	// Load the stylesheet
+	// Load the stylesheet for the back-end
 	wp_enqueue_style( 'adminStyle' );
 
 	global $wpdb;
@@ -99,30 +99,35 @@ function cct460appt_display_services() {
 	
 }
 
-// Insert a new service into the database
+// Insert a new service into the database.
 function cct460appt_insert_services(){
-	    global $wpdb;
-		
-		$rows_affected = $wpdb->insert( SERVICE_TABLE_NAME, array( 'name' => $_POST['service_name'],
+	global $wpdb;
+	
+	// Insert a new database entry into the table Services.
+	// Times are blocks of 30 minutes. Duration: each hour corresponds to 2 blocks, and a new block is added if 'minutes' were set as '30'.
+	$rows_affected = $wpdb->insert( SERVICE_TABLE_NAME, array( 'name' => $_POST['service_name'],
                                                                     'duration' => ($_POST['hour_duration'] * 2 + $_POST['min_duration']) 
                                                                     ) );
-         if (!$rows_affected)
-		{
+        
+        // Show an error message to users when query is unsuccessfully (no rows inserted)
+        if (!$rows_affected)
+	{
             echo '<span class="error">Error saving data! Please try again.';
             echo '<br /><br />Error debug information: '.mysql_error() . "</span>";
-		}else{
-			echo "<span class='success'>Data recorded sucessfully!</span>";
-		}
+	} else{
+		echo "<span class='success'>Data recorded sucessfully!</span>";
+	}
 }
 
 
-// Page showed when users click on submenu 'Business Hours'
+// Page showed when users click on submenu 'Business Hours'.
 function cct460appt_display_business_hours() {
 	global $wpdb;
 	
-	// load the stylesheet
+	// load the stylesheet for the back-end.
 	wp_enqueue_style( 'adminStyle' );
 	
+	// Create the HTML code for the form.
 	$html = '<div class="wrap" id="apptAdmin">
 				<h1> Business Hours </h1>
 				<form name="business_hours_form" method="post" action="">
@@ -149,7 +154,8 @@ function cct460appt_display_business_hours() {
 					<input type="submit" value="Add">
 				</form>
 			</div>';
-			
+	
+	// Get existing DB entries and show them in the table.		
 	$html .=	'<div id="apptAdmin" class="table_result">
 				<table>
 					<tr>
@@ -158,13 +164,16 @@ function cct460appt_display_business_hours() {
 						<th>End</th>
 						<th></th>
 					</tr>';
-			
+	
+	// Get existing DB entries and show them in the table.			
 	$results = $wpdb->get_results ("SELECT weekday, start_hour_index, end_hour_index FROM " . BUSINESS_HOURS_TABLE_NAME);
 	foreach ($results as $item) {
+		// These functions map an index to a real value. Ex: weekday '1' = 'Sunday'.
 		$weekday = get_weekday_from_index($item->weekday);
 		$start_hour = get_hour_from_index($item->start_hour_index);
 		$end_hour = get_hour_from_index($item->end_hour_index);
-      		  
+      		
+      		// Put entries inside the HTML code, specifically one entry by table row.   
 		$html .= 		"<tr>
 							<td>$weekday</td>
 							<td>$start_hour</td>
@@ -179,6 +188,7 @@ function cct460appt_display_business_hours() {
 			
 	echo $html;
 	
+	// Call the following function when users submit the form.
 	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['business_hour_post']))
 		cct460appt_insert_business_hour();	
 }
