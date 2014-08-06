@@ -9,14 +9,14 @@ Author URI:
 */
 
 
-// Creates constants for table names using WP prefix. They'll be used many times in the code.
+// Create constants for table names using WP prefix. They'll be used many times in the code.
 global $wpdb;
 define ('SERVICE_TABLE_NAME', $wpdb->prefix . "cct460appt_services");
 define ('BUSINESS_HOURS_TABLE_NAME', $wpdb->prefix . "cct460appt_business_hours");
 define ('APPOINTMENTS_TABLE_NAME', $wpdb->prefix . "cct460appt_appointments");
 
 
-// Creates a menu item and its submenu items on the back-end. Hooks this function to 'admin_menu' hook.
+// Create a menu item and its submenu items on the back-end. Hooks this function to 'admin_menu' hook.
 function cct460appt_addmenu() {
     add_menu_page('CCT460 Appointments', 'CCT460 Appointments', 'administrator', 'cct460appt_settings', 'cct460appt_display_settings');
 	add_submenu_page('cct460appt_settings', 'Services', 'Services', 'administrator', 'cct460appt_services',  'cct460appt_display_services');
@@ -42,11 +42,13 @@ function cct460appt_display_settings() {
 
 // Page showed when users click on submenu 'Services' on the back-end.
 function cct460appt_display_services() {
-	// load the stylesheet
+	
+	// Load the stylesheet
 	wp_enqueue_style( 'adminStyle' );
 
 	global $wpdb;
 	
+	// Create the HTML code for the form.
 	$html = '<div class="wrap" id="apptAdmin">
 				<h1> Services </h1>
 				<form name="services_form" method="post" action="">
@@ -60,10 +62,12 @@ function cct460appt_display_services() {
 							  </select></label>
 					<input type="submit" value="Add">
 				</form>';
-				
+	
+	// Call the following function when users submit the form.			
 	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['duration_post']))
 		cct460appt_insert_services();
 	
+	// Create the HTML code for the table of results.
 	$html .=	'<div id="existent_services">
 					<table>
 						<tr>
@@ -71,12 +75,15 @@ function cct460appt_display_services() {
 							<th>Duration (min)</th>
 							<th></th>
 						</tr>';
-						
+	
+	// Get existing DB entries and show them in the table.					
 	$results = $wpdb->get_results ("SELECT name, duration FROM " . SERVICE_TABLE_NAME);
 	foreach ($results as $item) {
 		$name = $item->name;
+		// Times are blocks of 30 minutes. The database stores block indexes, i.e., 1 = 30min, 2 = 60min, etc.
 		$duration = $item->duration * 30;
-      		  
+      		
+      		// Put entries inside the HTML code, specifically one entry by table row.  
 		$html .= 		"<tr>
 							<td>$name</td>
 							<td>$duration</td>
@@ -92,7 +99,7 @@ function cct460appt_display_services() {
 	
 }
 
-// insert the data on the database
+// Insert a new service into the database
 function cct460appt_insert_services(){
 	    global $wpdb;
 		
