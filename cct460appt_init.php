@@ -69,6 +69,7 @@ function cct460appt_display_services() {
 						<tr>
 							<th>Service Name</th>
 							<th>Duration (min)</th>
+							<th></th>
 						</tr>';
 						
 	$results = $wpdb->get_results ("SELECT name, duration FROM " . SERVICE_TABLE_NAME);
@@ -79,6 +80,7 @@ function cct460appt_display_services() {
 		$html .= 		"<tr>
 							<td>$name</td>
 							<td>$duration</td>
+							<td><a>Delete</a></td>
 						</tr>";
 	}
 						
@@ -147,6 +149,7 @@ function cct460appt_display_business_hours() {
 						<th>Week Day</th>
 						<th>Start</th>
 						<th>End</th>
+						<th></th>
 					</tr>';
 			
 	$results = $wpdb->get_results ("SELECT weekday, start_hour_index, end_hour_index FROM " . BUSINESS_HOURS_TABLE_NAME);
@@ -159,6 +162,7 @@ function cct460appt_display_business_hours() {
 							<td>$weekday</td>
 							<td>$start_hour</td>
 							<td>$end_hour</td>
+							<td><a>Delete</a></td>
 						</tr>";
 	}
 						
@@ -260,6 +264,7 @@ function cct460appt_display_appointments() {
 							<th>Service</th>
 							<th>Day</th>
 							<th>Time</th>
+							<th></th>
 						</tr>';
 						
 	$results = $wpdb->get_results ("SELECT a.client_id, s.name, a.day, a.hour_index FROM " . APPOINTMENTS_TABLE_NAME . " a, " . 
@@ -275,6 +280,7 @@ function cct460appt_display_appointments() {
 							<td>$service</td>
 							<td>$day</td>
 							<td>$time</td>
+							<td><a>Delete</a></td>
 						<tr>";
 	}
 						
