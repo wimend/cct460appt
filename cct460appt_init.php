@@ -480,15 +480,16 @@ function get_hour_from_index($index) {
 	 return $hour;
 }
 
-// Calculates and returns the available time on the schedule
+/ Calculate and returns the available time on the schedule
 function get_available_time_indexes() { 
-/*
- * SERVICE_TABLE_NAME
- * BUSINESS_HOURS_TABLE_NAME
- * APPOINTMENTS_TABLE_NAME
-*/ 	
+
 	global $wpdb;
 
+	/*
+	 * Select the business hour for the day selected 
+	 * bring the appoiments for this day
+	 * bring which service is for each appointment
+	 */
 	$sql = "SELECT hour_index as hi,
 				duration as qnt,
 				start_hour_index as shi, 
@@ -503,7 +504,9 @@ function get_available_time_indexes() {
 			ON c.service_id = s.id
 		
 		WHERE w.weekday =(weekday('".$_POST['date']."') + 2) % 7";
-
+		
+		
+	// Bring how much time the selected service takes
 	$sql2 = "select duration from ". SERVICE_TABLE_NAME ." where id='".$_POST['service']."'";
 
 	$results = $wpdb->get_results ($sql);
@@ -525,7 +528,11 @@ function get_available_time_indexes() {
 				$shi = $row->shi;
 				$ehi = $row->ehi;
 				$qnt = $row->qnt;
+				
+				// Verify if there is no appointments
 				if(!empty($row->hi)){
+					
+					// Add the appointments to a list
 					$exception[] = $row->hi;
 					for($j=1; $j < $qnt; $j++)
 						$exception[] = $row->hi + $j;
@@ -537,9 +544,14 @@ function get_available_time_indexes() {
 
 
 		}else{
+			
+			
+			// Verify if there is no appointments
 			if(!empty($row->hi)){
 				$exception[] = $row->hi;
 				$qnt = $row->qnt;
+				
+				// Add the appointments to a list
 				for($j=1; $j < $qnt; $j++)
 					$exception[] = $row->hi + $j;
 
@@ -548,6 +560,8 @@ function get_available_time_indexes() {
 			}
 		}
 	}
+	
+	// Calculate the available time on the schedule
 	for($i = $shi; $i < $ehi - $qnt2 + 1; $i++){
 
 		if(!isset($exception) || !in_array($i,$exception)){
