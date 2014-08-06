@@ -291,48 +291,85 @@ function book_appointment_form_display($atts) {
 	global $wpdb;
 
 	 $html = '<div id="apptClient"><form name="book_appointment_form" action="" method="post">
-	 <input type="hidden" name="book_appointment_post" id="1"/>
-	 <label>Date: <input type="date" name="date"></label>
-	 <label>Service: <select name="service">';
+	 <input type="hidden" name="book_appointment_post" id="1"/>';
+	 if(isset($_POST['book_appointment_post']))
+		$html .= ' <label>Date: <input type="date" name="date" value="'.$_POST['date'].'"/> </label>';
+	 else
+		$html .= ' <label>Date: <input type="date" name="date"/></label>';
+	 $html .= ' <label>Service: <select name="service">';
 
-	 $results = $wpdb->get_results ("SELECT name FROM " . SERVICE_TABLE_NAME);
+	 $results = $wpdb->get_results ("SELECT name, id FROM " . SERVICE_TABLE_NAME);
 	 foreach ($results as $item) {
-		$name = $item->name;
-		$html .= "<option>$name</option>";
+		$name 	= $item->name;
+		$id 	= $item->id;
+		if(isset($_POST['book_appointment_post']) && $_POST['service'] == $id)
+			$html .= "<option value='$id' selected='selected'>$name</option>";
+		else
+			$html .= "<option value='$id'>$name</option>";
 	 }
 
-	 $html .= '</select></label>
+	 $html .= '</select> </label>
 	 <input type="submit" value="Check available times">
 	 </form></div>';
 
 	 echo $html;
-	
-	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['book_appointment_post']))
+
+	 if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['book_appointment_post']))
 		cct460appt_request_form_available_times();
+		
+	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['request_form_available_times']))
+		cct460appt_insert_appointment();
 }
 add_shortcode('book_appointment_form', 'book_appointment_form_display');
 
 
 function cct460appt_request_form_available_times() {
 	global $wpdb;
-	
-	$time_index_array = array();
-	$time_index_array = get_available_time_indexes(); // Willian: inserir parametros
-	
-	$html = '<form name="available_times_choice" action="" method="post">
-				<label>Time: <select name="time">'; // Willian: inserir campo hidden, criar funcao insert e salvar no bd
-							
-	foreach ($time_index_array as $time_index) {
-		$hour = get_hour_from_index($time_index);
-		$html .= '<option value="' . $time_index . '">' . $hour . '</option><br/>';
+
+	 $time_index_array = array();
+	 $time_index_array = get_available_time_indexes(); 
+
+	if(empty($time_index_array)){
+
+		$html = "<div>There is no time available for this day</div>";
+	}else{
+		 $html = '<form name="available_times_choice" action="" method="post">
+			 <input type="hidden" name="request_form_available_times" id="1"/>
+			 <input type="hidden" name="day" value="'.$_POST['date'].'"/>
+			 <input type="hidden" name="service_number" value="'.$_POST['service'].'"/>
+			 <label>Time: <select name="time">'; // Willian: inserir campo hidden, criar funcao insert e salvar no bd
+
+			 foreach ($time_index_array as $time_index) {
+				$hour = get_hour_from_index($time_index);
+				$html .= '<option value="' . $time_index . '">' . $hour . '</option><br/>';
+			 }
+
+			 $html .= ' </select></label>
+			 <label>Client number: <input type="text" name="client_number"/></label>
+			 <input type="submit" value="Book appointment">
+		 </form>';
 	}
-							
-	$html .= '		  </select></label>
-				<label>Your name: <input type="text" name="name"></label>
-				<input type="submit" value="Book appointment">
-			</form>';
-			
-	echo $html;
+	 echo $html;
+}
+
+
+function cct460appt_insert_appointment(){
+	global $wpdb;
+		
+		$rows_affected = $wpdb->insert( APPOINTMENTS_TABLE_NAME , array( 'service_id' => $_POST['service_number'],
+                                                                    'client_id' => $_POST['client_number'],
+                                                                    'hour_index' => $_POST['time'],
+                                                                    'day' => $_POST['day']
+                                                                    ) );
+         if (!$rows_affected)
+		{
+            echo 'Error saving data! Please try again.';
+            echo '<br /><br />Error debug information: '.mysql_error();
+            exit;
+		}else{
+			echo "<div>Data recorded sucessfully!</div>";
+		}
+	
 }
 
 
@@ -351,13 +388,14 @@ function get_hour_from_index($index) {
 	 return $hour;
 }
 
-function get_available_time_indexes() { // Willian: procurar dados no banco atraves desta funcao
-
+// Calculates and returns the available time on the schedule
+function get_available_time_indexes() { 
 /*
  * SERVICE_TABLE_NAME
  * BUSINESS_HOURS_TABLE_NAME
  * APPOINTMENTS_TABLE_NAME
 */ 	
+	global $wpdb;
 
 	$sql = "SELECT hour_index as hi,
 				duration as qnt,
@@ -367,18 +405,27 @@ function get_available_time_indexes() { // Willian: procurar dados no banco atra
 		FROM ". BUSINESS_HOURS_TABLE_NAME." AS w 
 
 		LEFT JOIN ".APPOINTMENTS_TABLE_NAME."  AS c
-			AND w.weekday = weekday(c.day)
-			LEFT JOIN". SERVICE_TABLE_NAME ." AS s
+			ON c.day ='".$_POST['date']."'
+			AND w.weekday = (weekday(c.day) + 2) % 7 
+			LEFT JOIN ". SERVICE_TABLE_NAME ." AS s
 			ON c.service_id = s.id
 		
-		WHERE w.weekday = weekday(now())";
-			
+		WHERE w.weekday =(weekday('".$_POST['date']."') + 2) % 7";
+		
+	$sql2 = "select duration from ". SERVICE_TABLE_NAME ." where id='".$_POST['service']."'";
 
 	$results = $wpdb->get_results ($sql);
-
+	
+	$results2 = $wpdb->get_results ($sql2);
+	
 	$shi = -1;
 	$ehi = -1;
 	$qnt = -1;
+	
+	$qnt2 = -1;
+	foreach ($results2 as $row2)
+		$qnt2 = $row2->duration;
+		
 	foreach ($results as $row) {
 
 		if($shi == -1){
@@ -390,6 +437,9 @@ function get_available_time_indexes() { // Willian: procurar dados no banco atra
 					$exception[] = $row->hi;
 					for($j=1; $j < $qnt; $j++)
 						$exception[] = $row->hi + $j;
+						
+					for($k=1; $k < $qnt2; $k++)
+						$exception[] = $row->hi - $k;
 				}
 				
 	
@@ -400,6 +450,9 @@ function get_available_time_indexes() { // Willian: procurar dados no banco atra
 				$qnt = $row->qnt;
 				for($j=1; $j < $qnt; $j++)
 					$exception[] = $row->hi + $j;
+					
+				for($k=1; $k < $qnt2; $k++)
+						$exception[] = $row->hi - $k;
 			}
 		}
 	}
