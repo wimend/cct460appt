@@ -37,6 +37,28 @@ function load_scripts() {
     wp_enqueue_script( 'jquery' );
 }
 
+/* Return the javascript function 
+ *   to hide or show the submit button 
+ *   according to the checkboxes.
+ */ 
+function show_submit_button($checkbox_name, $submit_id){
+	$javascript = "<script>
+					function show_submit_button(){
+						var checkboxes = document.getElementsByName('".$checkbox_name."');
+						document.getElementById('".$submit_id."').hidden = true;
+						for (var i=0, n=checkboxes.length;i<n;i++) {
+							if (checkboxes[i].checked) 
+							{
+								document.getElementById('".$submit_id."').hidden = false;
+								return;
+							}
+						}
+					}
+					</script>";
+			
+	return $javascript;
+}
+
 // Page showed when users click on menu 'CCT460 Appointments' on the back-end.
 function cct460appt_display_settings() {
     $html = '<div class="wrap">
@@ -56,8 +78,11 @@ function cct460appt_display_services() {
 
 	global $wpdb;
 
+	// Add the javascript to the checkboxes
+	$html = show_submit_button('service_delete[]', 'delete_service_submit');
+	
 	// Create the HTML code for the form.
-	$html = '<div class="wrap" id="apptAdmin">
+	$html .= '<div class="wrap" id="apptAdmin">
 				<h1> Services </h1>
 				<form name="services_form" method="post" action="">
 					<input type="hidden" name="duration_post" id="1"/>
@@ -74,34 +99,49 @@ function cct460appt_display_services() {
 	// Call the following function when users submit the form.			
 	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['duration_post']))
 		cct460appt_insert_services();
+		
+	// Call the following function when users submit the delete form.			
+	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['service_delete_form_hd']))
+		cct460appt_delete_services();
+
 
 	// Create the HTML code for the table of results.
-	$html .=	'<div id="existent_services">
+	$html .=	'<form name="service_delete_form" action="" method="post">
+				<div id="existent_services">
 					<table>
 						<tr>
+							<th>[  ]</th>
 							<th>Service Name</th>
 							<th>Duration (min)</th>
-							<th></th>
 						</tr>';
 
 	// Get existing DB entries and show them in the table.					
-	$results = $wpdb->get_results ("SELECT name, duration FROM " . SERVICE_TABLE_NAME);
+	$results = $wpdb->get_results ("SELECT id, name, duration FROM " . SERVICE_TABLE_NAME);
 	foreach ($results as $item) {
 		$name = $item->name;
+		$id = $item->id;
 		// Times are blocks of 30 minutes. The database stores block indexes, i.e., 1 = 30min, 2 = 60min, etc.
 		$duration = $item->duration * 30;
+		
       		
-      		// Put entries inside the HTML code, specifically one entry by table row.  
+      	// Put entries inside the HTML code, specifically one entry by table row.  
 		$html .= 		"<tr>
+							<td><input type='checkbox' name='service_delete[]' value='$id' onchange='show_submit_button()'/></td>
 							<td>$name</td>
 							<td>$duration</td>
-							<td><a>Delete</a></td>
 						</tr>";
 	}
+		$html .= '	</table>
+				</div>';
 
-	$html .= '		</table>
-				</div>
-			</div>';
+	if(isset($id)){
+			$html .= '<input type="hidden" name="service_delete_form_hd" id="1"/>
+					<input type="submit" id="delete_service_submit" value="Delete Selection" hidden />';
+	}
+	
+	
+			$html .= '</from>
+					</div>';
 
 	echo $html;
 
@@ -127,6 +167,29 @@ function cct460appt_insert_services(){
 	}
 }
 
+// Delete the services chosen on the display screen
+function cct460appt_delete_services(){
+	global $wpdb;
+	
+	if(isset($_POST['service_delete'])){	
+		
+		$sqls = array();
+		
+		foreach($_POST['service_delete'] as $service){
+			$sqls [] = " DELETE 
+					FROM ". SERVICE_TABLE_NAME ." 
+					WHERE id=".$service;
+		}
+		
+		if(!empty($sqls))
+			foreach($sqls as $sql)
+				$wpdb->query($sql);
+				
+		echo "<span class='success'>Data deleted with success!</span>";
+	}
+	
+	
+}
 
 // Page showed when users click on submenu 'Business Hours'.
 function cct460appt_display_business_hours() {
@@ -142,9 +205,11 @@ function cct460appt_display_business_hours() {
 				val += parseInt(document.getElementsByName("min_start")[0].value);
 				document.getElementsByName("hour_end")[0].min = val;
 			}
-		</script>
+		</script>';
 		
-		<div class="wrap" id="apptAdmin">
+	$html .= show_submit_button('business_hour_delete[]', 'delete_submit');
+		
+	$html .= '<div class="wrap" id="apptAdmin">
 				<h1> Business Hours </h1>
 				<form name="business_hours_form" method="post" action="">
 					<input type="hidden" name="business_hour_post" id="1"/>
@@ -176,35 +241,45 @@ function cct460appt_display_business_hours() {
 		cct460appt_insert_business_hour();
 
 	// Get existing DB entries and show them in the table.		
-	$html .=	'<div id="apptAdmin" class="table_result">
+	$html .=	'<form name="business_hours_delete_form" action="" method="post">
+				<div id="apptAdmin" class="table_result">
 				<table>
 					<tr>
+						<th>[  ]</th>
 						<th>Week Day</th>
 						<th>Start</th>
 						<th>End</th>
-						<th></th>
 					</tr>';
+					
+	// Call the delete function when users submit the form.
+	// It has to be before the content, otherwise the screen will not show the content updated.
+	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['business_hour_delete_form']))
+		cct460appt_delete_business_hour();
 
 	// Get existing DB entries and show them in the table.			
-	$results = $wpdb->get_results ("SELECT weekday, start_hour_index, end_hour_index FROM " . BUSINESS_HOURS_TABLE_NAME);
+	$results = $wpdb->get_results ("SELECT id, weekday, start_hour_index, end_hour_index FROM " . BUSINESS_HOURS_TABLE_NAME." ORDER BY id asc");
 	foreach ($results as $item) {
 		// These functions map an index to a real value. Ex: weekday '1' = 'Sunday'.
 		$weekday = get_weekday_from_index($item->weekday);
 		$start_hour = get_hour_from_index($item->start_hour_index);
 		$end_hour = get_hour_from_index($item->end_hour_index);
-      		
+      	$id	= $item->id;
       		// Put entries inside the HTML code, specifically one entry by table row.   
 		$html .= 		"<tr>
+							<td><input type='checkbox' name='business_hour_delete[]' value='$id' onchange='show_submit_button(this)'/></td>
 							<td>$weekday</td>
 							<td>$start_hour</td>
 							<td>$end_hour</td>
-							<td><a>Delete</a></td>
 						</tr>";
 	}
 
-	$html .= '		</table>
-				</div>
-			</div>';
+	$html .= '		</table>';
+				
+	if(isset($id)){
+			$html .= '<input type="hidden" name="business_hour_delete_form" id="1"/>
+					<input type="submit" id="delete_submit" value="Delete Selection" hidden />';
+	}
+	$html .=	'</form></div></div>';
 
 	echo $html;
 }
@@ -230,6 +305,28 @@ function cct460appt_insert_business_hour(){
 	}
 }
 
+// Delete the business hours chosen on the display screen
+function cct460appt_delete_business_hour(){
+	global $wpdb;
+	
+	if(isset($_POST['business_hour_delete'])){	
+		
+		$sqls = array();
+		
+		foreach($_POST['business_hour_delete'] as $business_hour){
+			$sqls [] = " DELETE 
+					FROM ". BUSINESS_HOURS_TABLE_NAME ." 
+					WHERE id=".$business_hour;
+		}
+		
+		if(!empty($sqls))
+			foreach($sqls as $sql)
+				$wpdb->query($sql);
+				
+		echo "<span class='success'>Data deleted with success!</span>";
+	}
+	
+}
 
 // Create the tables into WP database when the plugin is activated.
 function cct460appt_install() {
@@ -301,45 +398,88 @@ function cct460appt_display_appointments() {
 
     global $wpdb;
 
+
+	// Generate the javascript to the delete checkboxes
+	$html = show_submit_button('appointment_delete[]', 'delete_appointment_submit');
+	
 	// Create the HTML code for the form.
-	$html = '<div class="wrap">
+	$html .= '<div class="wrap">
 				<div id="apptAdmin" class="table_result">
-				<h1> Appointments </h1>
-					<table>
-						<tr>
-							<th>Client</th>
-							<th>Service</th>
-							<th>Day</th>
-							<th>Time</th>
-							<th></th>
-						</tr>';
-						
+				<form name="appointment_delete_form" method="post" action="">
+					<h1> Appointments </h1>
+						<table>
+							<tr>
+								<th>[   ]</th>
+								<th>Client</th>
+								<th>Service</th>
+								<th>Day</th>
+								<th>Time</th>
+							</tr>';
+	
+	// Call the following function when users submit the delete form.			
+	if('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['appointment_delete_form_hd']))
+		cct460appt_delete_appointments();
+	
+	
 	// Get existing DB entries and show them in the table.
-	$results = $wpdb->get_results ("SELECT a.client_id, s.name, a.day, a.hour_index FROM " . APPOINTMENTS_TABLE_NAME . " a, " . 
+	$results = $wpdb->get_results ("SELECT a.id, a.client_id, s.name, a.day, a.hour_index FROM " . APPOINTMENTS_TABLE_NAME . " a, " . 
 									SERVICE_TABLE_NAME . " s WHERE a.service_id = s.id");
 	foreach ($results as $item) {
 		$client = $item->client_id;
 		$service = $item->name;
 		$day = $item->day;
+		$id = $item->id;
 		// Times are blocks of 30 minutes. The database stores block indexes, i.e., 1 = 30min, 2 = 60min, etc.
 		$time = get_hour_from_index($item->hour_index);
       		
       		// Put entries inside the HTML code, specifically one entry by table row.  
 		$html .= 		"<tr>
+							<td><input type='checkbox' name='appointment_delete[]' value='$id' onchange='show_submit_button()' /></td>
 							<td>$client</td>
 							<td>$service</td>
 							<td>$day</td>
 							<td>$time</td>
-							<td><a>Delete</a></td>
 						</tr>";
 	}
 
-	$html .= '		</table>
+	$html .= '		</table>';
+	
+	if(isset($id)){
+		$html .= '<input type="hidden" name="appointment_delete_form_hd" id=1 />
+				<input type="submit" id="delete_appointment_submit" value="Delete Selection" hidden/>';
+		
+	}
+	
+	$html .= '		</form>
 				</div>
 			</div>';
 
     echo $html;
 }
+
+// Delete the appointments chosen on the display screen
+function cct460appt_delete_appointments(){
+	global $wpdb;
+	
+	if(isset($_POST['appointment_delete'])){	
+		
+		$sqls = array();
+		
+		foreach($_POST['appointment_delete'] as $appointment){
+			$sqls [] = " DELETE 
+					FROM ". APPOINTMENTS_TABLE_NAME ." 
+					WHERE id=".$appointment;
+		}
+		
+		if(!empty($sqls))
+			foreach($sqls as $sql)
+				$wpdb->query($sql);
+				
+		echo "<span class='success'>Data deleted with success!</span>";
+	}
+	
+}
+
 
 // This function represents the shortcode to show the appointment form in a WP page.
 function book_appointment_form_display($atts) {
