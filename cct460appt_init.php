@@ -260,7 +260,7 @@ function cct460appt_display_business_hours() {
 		cct460appt_delete_business_hour();
 
 	// Get existing DB entries and show them in the table.			
-	$results = $wpdb->get_results ("SELECT id, weekday, start_hour_index, end_hour_index FROM " . BUSINESS_HOURS_TABLE_NAME." ORDER BY id asc");
+	$results = $wpdb->get_results ("SELECT weekday, start_hour_index, end_hour_index FROM " . BUSINESS_HOURS_TABLE_NAME." ORDER BY weekday asc");
 	foreach ($results as $item) {
 		// These functions map an index to a real value. Ex: weekday '1' = 'Sunday'.
 		$weekday = get_weekday_from_index($item->weekday);
