@@ -262,14 +262,15 @@ function cct460appt_display_business_hours() {
 	// Get existing DB entries and show them in the table.			
 	$results = $wpdb->get_results ("SELECT weekday, start_hour_index, end_hour_index FROM " . BUSINESS_HOURS_TABLE_NAME." ORDER BY weekday asc");
 	foreach ($results as $item) {
+		$id_weekday = $item->weekday;
 		// These functions map an index to a real value. Ex: weekday '1' = 'Sunday'.
 		$weekday = get_weekday_from_index($item->weekday);
 		$start_hour = get_hour_from_index($item->start_hour_index);
 		$end_hour = get_hour_from_index($item->end_hour_index);
-      	$id	= $item->id;
+
       		// Put entries inside the HTML code, specifically one entry by table row.   
 		$html .= 		"<tr>
-							<td><input type='checkbox' name='business_hour_delete[]' value='$id' onchange='show_submit_button(this)'/></td>
+							<td><input type='checkbox' name='business_hour_delete[]' value='$id_weekday' onchange='show_submit_button(this)'/></td>
 							<td>$weekday</td>
 							<td>$start_hour</td>
 							<td>$end_hour</td>
@@ -278,7 +279,7 @@ function cct460appt_display_business_hours() {
 
 	$html .= '		</table>';
 				
-	if(isset($id)){
+	if(isset($id_weekday)){
 			$html .= '<input type="hidden" name="business_hour_delete_form" id="1"/>
 					<input type="submit" id="delete_submit" value="Delete Selection" hidden />';
 	}
@@ -319,7 +320,7 @@ function cct460appt_delete_business_hour(){
 		foreach($_POST['business_hour_delete'] as $business_hour){
 			$sqls [] = " DELETE 
 					FROM ". BUSINESS_HOURS_TABLE_NAME ." 
-					WHERE id=".$business_hour;
+					WHERE weekday=".$business_hour;
 		}
 		
 		if(!empty($sqls))
