@@ -166,7 +166,7 @@ function cct460appt_insert_services(){
             echo '<span class="error">Error saving data! Please try again.';
             echo '<br /><br />Error debug information: '.mysql_error() . "</span>";
 	} else{
-		echo "<span class='success'>Data recorded sucessfully!</span>";
+		echo "<span class='success'>The new service has been added successfully!</span>";
 	}
 }
 
@@ -304,7 +304,7 @@ function cct460appt_insert_business_hour(){
             echo '<span class="error">Error saving data! Please try again.';
             echo '<br /><br />Error debug information: '.mysql_error() . "</span>";
 	}else{
-		echo "<span class='success'>Data recorded sucessfully!</span>";
+		echo "<span class='success'>Your appointment has been booked successfully!</span>";
 	}
 }
 
@@ -597,7 +597,7 @@ function cct460appt_insert_appointment(){
             echo '<br /><br />Error debug information: '.mysql_error();
             exit;
 	}else{
-		echo "<div>Data recorded sucessfully!</div>";
+		echo "<div>The new business hours have been added successfully!</div>";
 	}
 
 }
