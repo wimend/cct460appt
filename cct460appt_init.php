@@ -28,14 +28,17 @@ add_action('admin_menu', 'cct460appt_addmenu');
  // Register the stylesheets, both for front-end and back-end.
 wp_register_style( 'adminStyle', plugins_url('cct460appt_admin_style.css', __FILE__) );
 wp_register_style( 'clientStyle', plugins_url('cct460appt_client_style.css', __FILE__) );
+wp_register_style( 'jqueryDatepicker', '//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css' );
 
 //Load jQuery and Jquery UI
-add_action( 'wp_enqueue_script', 'load_scripts' );
 wp_register_script('jquery-ui',("http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"), false, '1.8.16');
 
 function load_scripts() {
-    wp_enqueue_script( 'jquery' );
+	wp_enqueue_script( 'jquery' );
+		wp_enqueue_script( 'jquery-ui' );
+
 }
+add_action( 'wp_enqueue_scripts', 'load_scripts' );
 
 /* Return the javascript function 
  *   to hide or show the submit button 
@@ -485,8 +488,9 @@ function cct460appt_delete_appointments(){
 function book_appointment_form_display($atts) {
 	// Load the style for the front-end.
 	wp_enqueue_style( 'clientStyle' );
-	// Load the jQuery for the calendar.
-	wp_enqueue_script('jquery-ui');
+	// Load the stylefor the calendar.
+	wp_enqueue_style( 'jqueryDatepicker');
+
 	
 	// Set the jQuery calendar.
 	echo "<script>
